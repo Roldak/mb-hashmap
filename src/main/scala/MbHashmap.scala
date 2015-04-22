@@ -9,9 +9,9 @@ object MbHashmap {
   class MbHashmap[@miniboxed K, @miniboxed V](var _capacity: Int, val _loadFactor: Float) {
     var _buckets = new Array[Entry[K, V]](_capacity)
     var _size = 0
-    
+
     def size = _size
-    
+
     def apply(key: K): Option[V] = {
       var entry = _buckets(computeIndex(key))
 
@@ -26,51 +26,62 @@ object MbHashmap {
     }
 
     def update(key: K, value: V): Unit = {
+      if (updateEntry(key, value)) {
+        _size += 1
+        rehashIfNeeded
+      }
+    }
+
+    private def updateEntry(key: K, value: V): Boolean = {
       val i = computeIndex(key)
       var entry = _buckets(i)
 
       if (entry == null) {
-        _size += 1
         _buckets(i) = new Entry(key, value)
       } else {
         var lastEntry = entry
-        
+
         while (entry != null) {
           if (entry.key == key) {
             entry.value = value
-            return
+            return false
           }
           lastEntry = entry
           entry = entry.next
         }
 
-        _size += 1
         lastEntry.next = new Entry(key, value)
       }
-      
-      rehashIfNeeded
+      true
     }
 
     private def rehashIfNeeded = {
-      if (_size > _capacity * _loadFactor ) {
+      if (_size > _capacity * _loadFactor) {
         val oldCapacity = _capacity
         val oldBuckets = _buckets
-        
+
         _capacity = _capacity * 2
         _buckets = new Array[Entry[K, V]](_capacity)
-        
+
         var i = 0
         while (i < oldCapacity) {
           var entry = oldBuckets(i)
           while (entry != null) {
-            update(entry.key, entry.value)
+            updateEntry(entry.key, entry.value)
             entry = entry.next
           }
           i += 1
         }
+
+        /*
+        println("Rehashing")
+        println("\tSize : " + _size)
+        println("\tOld capacity : " + oldCapacity)
+        println("\tNew capacity : " + _capacity)
+        */
       }
     }
-    
+
     private def computeIndex(k: K) = k.hashCode() % _capacity
   }
 
@@ -81,6 +92,12 @@ object MbHashmap {
 
 object Main {
   def main(args: Array[String]) = {
-
+    val hm = MbHashmap.empty[Int, Int]()
+    for (i <- 0 to 50) {
+      hm(i) = i
+    }
+    for (i <- 0 to 50) {
+      hm(i).foreach { x => assert(x == i) }
+    }
   }
 }
