@@ -53,7 +53,21 @@ object MbHashmap {
 
     private def rehashIfNeeded = {
       if (_size > _capacity * _loadFactor ) {
-        // perform rehashing
+        val oldCapacity = _capacity
+        val oldBuckets = _buckets
+        
+        _capacity = _capacity * 2
+        _buckets = new Array[Entry[K, V]](_capacity)
+        
+        var i = 0
+        while (i < oldCapacity) {
+          var entry = oldBuckets(i)
+          while (entry != null) {
+            update(entry.key, entry.value)
+            entry = entry.next
+          }
+          i += 1
+        }
       }
     }
     
