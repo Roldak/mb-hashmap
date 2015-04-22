@@ -1,2 +1,2 @@
 # mb-hashmap
-Simple hashmap implementation using the miniboxing plugin
+Simple mutable hashmap implementation using the miniboxing plugin
