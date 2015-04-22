@@ -6,9 +6,9 @@ object MbHashmap {
   def empty[@miniboxed K, @miniboxed V](initialCapacity: Int = 16, loadFactor: Float = 0.75f) =
     new MbHashmap[K, V](initialCapacity, loadFactor)
 
-  class MbHashmap[@miniboxed K, @miniboxed V](var _capacity: Int, val _loadFactor: Float) {
-    var _buckets = new Array[Entry[K, V]](_capacity)
-    var _size = 0
+  class MbHashmap[@miniboxed K, @miniboxed V](private var _capacity: Int, private val _loadFactor: Float) {
+    private var _buckets = new Array[Entry[K, V]](_capacity)
+    private var _size = 0
 
     def size = _size
 
