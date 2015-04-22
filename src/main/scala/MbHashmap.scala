@@ -1,12 +1,12 @@
 package mbhashmap
 
-import com.sun.org.apache.bcel.internal.generic.LoadClass
-
 object MbHashmap {
   def empty[@miniboxed K, @miniboxed V](initialCapacity: Int = 16, loadFactor: Float = 0.75f) =
     new MbHashmap[K, V](initialCapacity, loadFactor)
 
-  class MbHashmap[@miniboxed K, @miniboxed V](private var _capacity: Int, private val _loadFactor: Float) {
+  class MbHashmap[@miniboxed K, @miniboxed V](private var _capacity: Int, private val _loadFactor: Float)
+    extends Iterable[(K, V)] {
+    
     private var _buckets = new Array[Entry[K, V]](_capacity)
     private var _size = 0
 
@@ -83,6 +83,40 @@ object MbHashmap {
     }
 
     private def computeIndex(k: K) = k.hashCode() % _capacity
+    
+    def iterator = new Iterator[(K, V)] {
+      private var _i = 0
+      private var _next: Entry[K, V] = null
+      computeNext
+      
+      def hasNext = _next != null
+      
+      def next = {
+        val n = _next
+        computeNext
+        (n.key, n.value)
+      }
+      
+      private def computeNext: Unit = {
+        while (_i < _capacity && _buckets(_i) == null) {
+          _i += 1
+        }
+        
+        if (_i >= _capacity) {
+          _next = null
+        } else if (_next == null) {
+          _next = _buckets(_i)
+        } else {
+          if (_next.next == null) {
+            _i += 1
+            _next = null
+            computeNext
+          } else {
+            _next = _next.next
+          }
+        }
+      }
+    }
   }
 
   class Entry[@miniboxed K, @miniboxed V](val key: K, var value: V) {
@@ -99,5 +133,7 @@ object Main {
     for (i <- 0 to 50) {
       hm(i).foreach { x => assert(x == i) }
     }
+    
+    hm.foreach(pair => { println(pair._1 + " => " + pair._2)})
   }
 }
