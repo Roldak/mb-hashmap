@@ -5,7 +5,7 @@ object MbHashmap {
     new MbHashmap[K, V](initialCapacity, loadFactor)
 
   class MbHashmap[@miniboxed K, @miniboxed V](private var _capacity: Int, private val _loadFactor: Float)
-    extends Iterable[(K, V)] {
+    extends Buildable2[K, V, MbHashmap] {
     
     private var _buckets = new Array[Entry[K, V]](_capacity)
     private var _size = 0
@@ -117,6 +117,16 @@ object MbHashmap {
         }
       }
     }
+    
+    def builder[@miniboxed U, @miniboxed V] = new Builder2[U, V, MbHashmap] {
+      private var _hm = MbHashmap.empty[U, V]()
+      
+      def append(x: (U, V)) = {
+        _hm(x._1) = x._2
+      }
+      
+      def finalise = _hm
+    }
   }
 
   class Entry[@miniboxed K, @miniboxed V](val key: K, var value: V) {
@@ -134,6 +144,6 @@ object Main {
       hm(i).foreach { x => assert(x == i) }
     }
     
-    hm.foreach(pair => { println(pair._1 + " => " + pair._2)})
+    hm.map(pair => (pair._1, pair._2 * 2)).foreach(pair => { println(pair._1 + " => " + pair._2)})
   }
 }
